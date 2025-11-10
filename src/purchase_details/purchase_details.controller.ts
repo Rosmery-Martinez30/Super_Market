@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { PurchaseDetailsService } from './purchase_details.service';
 import { CreatePurchaseDetailDto } from './dto/create-purchase_detail.dto';
 import { UpdatePurchaseDetailDto } from './dto/update-purchase_detail.dto';
@@ -18,17 +27,20 @@ export class PurchaseDetailsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.purchaseDetailsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.purchaseDetailsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePurchaseDetailDto: UpdatePurchaseDetailDto) {
-    return this.purchaseDetailsService.update(+id, updatePurchaseDetailDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePurchaseDetailDto: UpdatePurchaseDetailDto,
+  ) {
+    return this.purchaseDetailsService.update(id, updatePurchaseDetailDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.purchaseDetailsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.purchaseDetailsService.remove(id);
   }
 }

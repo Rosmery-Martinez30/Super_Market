@@ -22,11 +22,12 @@ export class Product {
   stock: number;
 
   // Relaciones
-  @ManyToOne(() => Category, (category) => category.products, { onDelete: 'SET NULL' })
-  category: Category;
+@ManyToOne(() => Category, (category) => category.products, { onDelete: 'SET NULL', nullable: true })
+category: Category | null;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.products, { onDelete: 'SET NULL' })
-  supplier: Supplier;
+
+@ManyToOne(() => Supplier, (supplier) => supplier.products, { onDelete: 'SET NULL', nullable: true })
+supplier: Supplier | null;
 
   @OneToMany(() => PurchaseDetail, (detail) => detail.product, { cascade: true })
   details: PurchaseDetail[];

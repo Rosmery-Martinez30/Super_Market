@@ -1,26 +1,56 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Supplier } from './entities/supplier.entity';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class SupplierService {
-  create(createSupplierDto: CreateSupplierDto) {
-    return 'This action adds a new supplier';
+  constructor(
+    @InjectRepository(Supplier)
+    private readonly supplierRepository: Repository<Supplier>,
+
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+  ) {}
+
+  // Crear un nuevo proveedor
+  async create(createSupplierDto: CreateSupplierDto): Promise<Supplier> {
+    const supplier = this.supplierRepository.create(createSupplierDto);
+    return await this.supplierRepository.save(supplier);
   }
 
-  findAll() {
-    return `This action returns all supplier`;
+  // Obtener todos los proveedores con sus productos
+  async findAll(): Promise<Supplier[]> {
+    return await this.supplierRepository.find({
+      relations: ['products'],
+      order: { id: 'ASC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} supplier`;
+  // Obtener un proveedor por id
+  async findOne(id: number): Promise<Supplier> {
+    const supplier = await this.supplierRepository.findOne({
+      where: { id },
+      relations: ['products'],
+    });
+
+    if (!supplier) throw new NotFoundException(`Supplier with ID ${id} not found`);
+    return supplier;
   }
 
-  update(id: number, updateSupplierDto: UpdateSupplierDto) {
-    return `This action updates a #${id} supplier`;
+  // Actualizar proveedor
+  async update(id: number, updateSupplierDto: UpdateSupplierDto): Promise<Supplier> {
+    const supplier = await this.findOne(id);
+    Object.assign(supplier, updateSupplierDto);
+    return await this.supplierRepository.save(supplier);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} supplier`;
+  // Eliminar proveedor
+  async remove(id: number): Promise<void> {
+    const supplier = await this.findOne(id);
+    await this.supplierRepository.remove(supplier);
   }
 }

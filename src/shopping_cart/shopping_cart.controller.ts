@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
 import { ShoppingCartService } from './shopping_cart.service';
 import { CreateShoppingCartDto } from './dto/create-shopping_cart.dto';
 import { UpdateShoppingCartDto } from './dto/update-shopping_cart.dto';
@@ -8,8 +8,8 @@ export class ShoppingCartController {
   constructor(private readonly shoppingCartService: ShoppingCartService) {}
 
   @Post()
-  create(@Body() createShoppingCartDto: CreateShoppingCartDto) {
-    return this.shoppingCartService.create(createShoppingCartDto);
+  create(@Body() dto: CreateShoppingCartDto) {
+    return this.shoppingCartService.create(dto);
   }
 
   @Get()
@@ -18,17 +18,22 @@ export class ShoppingCartController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shoppingCartService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.shoppingCartService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShoppingCartDto: UpdateShoppingCartDto) {
-    return this.shoppingCartService.update(+id, updateShoppingCartDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateShoppingCartDto) {
+    return this.shoppingCartService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shoppingCartService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.shoppingCartService.remove(id);
+  }
+
+  @Delete('clear/:customerId')
+  clearCart(@Param('customerId', ParseIntPipe) customerId: number) {
+    return this.shoppingCartService.clearCustomerCart(customerId);
   }
 }
