@@ -21,6 +21,10 @@ export class Product {
   @Column('int', { default: 0 })
   stock: number;
 
+   // Nueva columna para la URL de la imagen (opcional)
+  @Column({ type: 'varchar', length: 1000, nullable: true })
+  imageUrl: string | null;
+
   // Relaciones
 @ManyToOne(() => Category, (category) => category.products, { onDelete: 'SET NULL', nullable: true })
 category: Category | null;

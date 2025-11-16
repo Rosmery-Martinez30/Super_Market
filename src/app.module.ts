@@ -1,6 +1,10 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductModule } from './product/product.module';
@@ -12,24 +16,34 @@ import { AddressModule } from './address/address.module';
 import { PaymentModule } from './payment/payment.module';
 import { PurchaseDetailsModule } from './purchase_details/purchase_details.module';
 import { UserModule } from './user/user.module';
-import { PurchaseModule } from './purchase/purchase.module'; 
+import { PurchaseModule } from './purchase/purchase.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    // TypeORM config (ajusta env vars en .env)
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
+      port: +(process.env.DB_PORT ?? 3306),
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      logging: true,
+      synchronize: true, // recomendable false en producción
       autoLoadEntities: true,
-      synchronize: true,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
+
+    // Servir archivos estáticos (uploads) en /uploads/<filename>
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
+
+    // Tus módulos
     ProductModule,
     PaymentModule,
     CustomerModule,
@@ -38,8 +52,9 @@ import { AuthModule } from './auth/auth.module';
     SupplierModule,
     AddressModule,
     PurchaseDetailsModule,
-    UserModule,         
-    PurchaseModule, AuthModule,  
+    UserModule,
+    PurchaseModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

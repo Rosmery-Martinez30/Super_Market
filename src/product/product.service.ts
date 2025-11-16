@@ -20,28 +20,42 @@ export class ProductService {
     private readonly supplierRepository: Repository<Supplier>,
   ) {}
 
+  /**
+   * Crea un producto. createProductDto puede incluir imageUrl opcional.
+   */
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const { categoryId, supplierId, ...rest } = createProductDto;
-    const product = this.productRepository.create(rest);
+
+    // create acepta Partial<Product>, casteamos por seguridad de tipos
+    const product = this.productRepository.create(rest as Partial<Product>);
 
     if (categoryId) {
-      product.category = await this.categoryRepository.findOneBy({ id: categoryId });
+      const category = await this.categoryRepository.findOneBy({ id: categoryId });
+      if (category) product.category = category;
     }
 
     if (supplierId) {
-      product.supplier = await this.supplierRepository.findOneBy({ id: supplierId });
+      const supplier = await this.supplierRepository.findOneBy({ id: supplierId });
+      if (supplier) product.supplier = supplier;
     }
 
-    return await this.productRepository.save(product);
+    return this.productRepository.save(product);
   }
 
+  /**
+   * Obtiene todos los productos (con category y supplier).
+   */
   async findAll(): Promise<Product[]> {
-    return await this.productRepository.find({
+    return this.productRepository.find({
       relations: ['category', 'supplier'],
       order: { id: 'ASC' },
     });
   }
 
+  /**
+   * Obtiene un producto por id.
+   * Lanza NotFoundException si no existe.
+   */
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
@@ -51,23 +65,41 @@ export class ProductService {
     return product;
   }
 
+  /**
+   * Actualiza un producto parcialmente.
+   */
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(id);
     const { categoryId, supplierId, ...rest } = updateProductDto;
 
-    Object.assign(product, rest);
+    // aplica cambios
+    Object.assign(product, rest as Partial<Product>);
 
     if (categoryId) {
-      product.category = await this.categoryRepository.findOneBy({ id: categoryId });
+      const category = await this.categoryRepository.findOneBy({ id: categoryId });
+      product.category = category ?? null;
     }
 
     if (supplierId) {
-      product.supplier = await this.supplierRepository.findOneBy({ id: supplierId });
+      const supplier = await this.supplierRepository.findOneBy({ id: supplierId });
+      product.supplier = supplier ?? null;
     }
 
-    return await this.productRepository.save(product);
+    return this.productRepository.save(product);
   }
 
+  /**
+   * Actualiza solo el campo imageUrl (útil tras subir archivo).
+   */
+  async updateImageUrl(id: number, imageUrl: string): Promise<Product> {
+    const product = await this.findOne(id);
+    product.imageUrl = imageUrl;
+    return this.productRepository.save(product);
+  }
+
+  /**
+   * Elimina producto.
+   */
   async remove(id: number): Promise<void> {
     const product = await this.findOne(id);
     await this.productRepository.remove(product);

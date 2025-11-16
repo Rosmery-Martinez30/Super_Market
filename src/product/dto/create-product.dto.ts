@@ -24,4 +24,9 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   supplierId?: number;
+
+    // nueva propiedad opcional (si decides crear con URL ya provista)
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }
